@@ -1,5 +1,8 @@
 import json
+import sys
+
 import numpy as np
+
 
 def is_normal_triple(triples, is_relation_first=False):
     entities = set()
@@ -8,6 +11,7 @@ def is_normal_triple(triples, is_relation_first=False):
         if i % 3 != key:
             entities.add(e)
     return len(entities) == 2 * int(len(triples) / 3)
+
 
 def is_multi_label(triples, is_relation_first=False):
     if is_normal_triple(triples, is_relation_first):
@@ -18,6 +22,7 @@ def is_multi_label(triples, is_relation_first=False):
         entity_pair = [tuple(triples[3 * i: 3 * i + 2]) for i in range(int(len(triples) / 3))]
     # if is multi label, then, at least one entity pair appeared more than once
     return len(entity_pair) != len(set(entity_pair))
+
 
 def is_over_lapping(triples, is_relation_first=False):
     if is_normal_triple(triples, is_relation_first):
@@ -33,6 +38,7 @@ def is_over_lapping(triples, is_relation_first=False):
         entities.extend(pair)
     entities = set(entities)
     return len(entities) != 2 * len(entity_pair)
+
 
 def load_data(in_file, word_dict, rel_dict, out_file, normal_file, epo_file, seo_file):
     with open(in_file, 'r') as f1, open(out_file, 'w') as f2, open(normal_file, 'w') as f3, open(epo_file, 'w') as f4, open(seo_file, 'w') as f5:
@@ -70,12 +76,34 @@ def load_data(in_file, word_dict, rel_dict, out_file, normal_file, epo_file, seo
                 if is_over_lapping(spos[i]):
                     f5.write(json.dumps(new_line) + '\n')
 
+"""
+From the 7z archive we have extracted the following files:
+- relations2id.json
+- test.json
+- train.json
+- valid.json
+- words_id2vector.json
+- words2id.json
+
+test.json, train.json and valid.json are the files we are interested in
+converting, from vectors back to words
+
+for each of those we should run this script
+
+we can ignore the _normal, _epo and _seo files that it generates I think
+
+next we need to run ../build_data.py on the test.json, train.json and valid.json
+that we have generated with this script
+"""
+
 if __name__ == '__main__':
-    file_name = 'valid.json'
-    output = 'new_valid.json'
-    output_normal = 'new_valid_normal.json'
-    output_epo = 'new_valid_epo.json'
-    output_seo = 'new_valid_seo.json'
+    file_name = sys.argv[1]
+    output_prefix = sys.argv[2]
+
+    output = f'{output_prefix}.json'
+    output_normal = f'{output_prefix}_normal.json'
+    output_epo = f'{output_prefix}_epo.json'
+    output_seo = f'{output_prefix}_seo.json'
     with open('relations2id.json', 'r') as f1, open('words2id.json', 'r') as f2:
         rel2id = json.load(f1)
         words2id = json.load(f2)
